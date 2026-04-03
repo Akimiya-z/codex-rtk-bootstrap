@@ -7,28 +7,29 @@ config_file="${codex_home}/config.toml"
 agents_file="${codex_home}/AGENTS.md"
 rtk_md="${codex_home}/RTK.md"
 shim_path="${local_bin}/rtk-shim"
-commands="${RTK_SHIM_COMMANDS:-git gh cargo cat head tail grep rg ls find tree curl docker kubectl pytest ruff go tsc prettier pnpm npm npx pip node python python3 yarn make jq}"
 target_model_line="model_instructions_file = \"$rtk_md\""
 
-if [ -f "$config_file" ] && grep -Fxq "$target_model_line" "$config_file"; then
+if [ -f "$config_file" ] && /usr/bin/grep -Fxq "$target_model_line" "$config_file"; then
   tmp_config="${config_file}.tmp.$$"
-  awk -v line="$target_model_line" '
+  /usr/bin/awk -v line="$target_model_line" '
     $0 != line { print }
   ' "$config_file" > "$tmp_config"
-  mv "$tmp_config" "$config_file"
+  /bin/mv "$tmp_config" "$config_file"
 fi
 
-if [ -f "$agents_file" ] && grep -Fxq '@RTK.md' "$agents_file"; then
+if [ -f "$agents_file" ] && /usr/bin/grep -Fxq '@RTK.md' "$agents_file"; then
   tmp_agents="${agents_file}.tmp.$$"
-  awk '
+  /usr/bin/awk '
     $0 != "@RTK.md" { print }
   ' "$agents_file" > "$tmp_agents"
-  mv "$tmp_agents" "$agents_file"
+  /bin/mv "$tmp_agents" "$agents_file"
 fi
 
-rm -f "$shim_path"
-for name in $commands; do
-  rm -f "$local_bin/$name"
+/bin/rm -f "$shim_path"
+for link in "$local_bin"/*; do
+  [ -L "$link" ] || continue
+  [ "$(/usr/bin/readlink "$link")" = "rtk-shim" ] || continue
+  /bin/rm -f "$link"
 done
 
 printf '%s\n' "Removed Codex + RTK bootstrap links."

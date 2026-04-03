@@ -21,7 +21,7 @@ Restart the Codex app, then open a new chat and ask it to run `git status`. You 
 - `~/.codex/AGENTS.md` with an `@RTK.md` reference
 - `~/.codex/config.toml` with `model_instructions_file`
 - `~/.local/bin/rtk-shim`
-- command shims in `~/.local/bin` for common RTK-supported commands
+- command shims in `~/.local/bin` for the high-value RTK-supported commands, including `git`, `gh`, `ls`, `find`, `tree`, `grep`, `curl`, `docker`, `kubectl`, `pytest`, `ruff`, `go`, `tsc`, `prettier`, `pnpm`, `npm`, `npx`, `pip`, `diff`, `wc`, `env`, and `psql`
 
 ## How it works
 
@@ -93,6 +93,7 @@ If the setup is working, Codex should report `rtk git status`.
 - The repo does not change your existing project files.
 - If you already have a different `model_instructions_file` in `~/.codex/config.toml`, merge it manually before running the installer.
 - RTK only helps for supported shell commands; it does not rewrite every tool call.
+- The bootstrap only shims the high-value supported commands by default. Add more via `RTK_SHIM_COMMANDS` if you know you want them.
 
 ## For
 

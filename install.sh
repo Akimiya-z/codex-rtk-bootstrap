@@ -9,7 +9,7 @@ agents_file="${codex_home}/AGENTS.md"
 rtk_md="${codex_home}/RTK.md"
 template_rtk_md="${repo_dir}/RTK.md"
 shim_path="${local_bin}/rtk-shim"
-commands="${RTK_SHIM_COMMANDS:-git gh cargo cat head tail grep rg ls find tree curl docker kubectl pytest ruff go tsc prettier pnpm npm npx pip node python python3 yarn make jq}"
+commands="${RTK_SHIM_COMMANDS:-git gh cargo grep ls find tree curl docker kubectl pytest ruff go tsc prettier pnpm npm npx pip diff wc env psql aws dotnet vitest prisma next lint format playwright mypy rspec rubocop rake golangci-lint}"
 
 if [ -n "${RTK_BIN:-}" ]; then
   if [ ! -x "$RTK_BIN" ]; then
@@ -26,24 +26,24 @@ EOF
   exit 1
 fi
 
-mkdir -p "$codex_home" "$local_bin"
+/bin/mkdir -p "$codex_home" "$local_bin"
 
 if [ ! -f "$rtk_md" ]; then
-  cp "$template_rtk_md" "$rtk_md"
+  /bin/cp "$template_rtk_md" "$rtk_md"
 fi
 
 if [ ! -f "$agents_file" ]; then
   printf '# Codex instructions\n@RTK.md\n' > "$agents_file"
-elif ! grep -q '^@RTK\.md$' "$agents_file"; then
+elif ! /usr/bin/grep -q '^@RTK\.md$' "$agents_file"; then
   printf '\n@RTK.md\n' >> "$agents_file"
 fi
 
 model_line="model_instructions_file = \"$rtk_md\""
 if [ ! -f "$config_file" ]; then
   printf '%s\n' "$model_line" > "$config_file"
-elif ! grep -q '^[[:space:]]*model_instructions_file[[:space:]]*=' "$config_file"; then
+elif ! /usr/bin/grep -q '^[[:space:]]*model_instructions_file[[:space:]]*=' "$config_file"; then
   tmp_config="${config_file}.tmp.$$"
-  awk -v line="$model_line" '
+  /usr/bin/awk -v line="$model_line" '
     BEGIN { inserted = 0 }
     {
       if (!inserted && $0 ~ /^[[:space:]]*\[/) {
@@ -56,10 +56,10 @@ elif ! grep -q '^[[:space:]]*model_instructions_file[[:space:]]*=' "$config_file
       if (!inserted) print line
     }
   ' "$config_file" > "$tmp_config"
-  mv "$tmp_config" "$config_file"
+  /bin/mv "$tmp_config" "$config_file"
 fi
 
-cat > "$shim_path" <<'EOF'
+/bin/cat > "$shim_path" <<'EOF'
 #!/bin/sh
 set -eu
 
@@ -109,10 +109,29 @@ export PATH
 exec "$rtk_bin" "$cmd" "$@"
 EOF
 
-chmod +x "$shim_path"
+/bin/chmod +x "$shim_path"
+
+contains_command() {
+  needle=$1
+  for name in $commands; do
+    if [ "$name" = "$needle" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+for link in "$local_bin"/*; do
+  [ -L "$link" ] || continue
+  [ "$(/usr/bin/readlink "$link")" = "rtk-shim" ] || continue
+  name=${link##*/}
+  if ! contains_command "$name"; then
+    /bin/rm -f "$link"
+  fi
+done
 
 for name in $commands; do
-  ln -sfn rtk-shim "$local_bin/$name"
+  /bin/ln -sfn rtk-shim "$local_bin/$name"
 done
 
 printf '%s\n' "Installed Codex + RTK bootstrap."
