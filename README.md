@@ -1,8 +1,19 @@
 # Codex App + RTK Bootstrap
 
-This repo is a macOS user-level bootstrap that makes new Codex App sessions prefer RTK for supported shell commands.
+Make new Codex App sessions on macOS prefer RTK for supported shell commands.
 
-It does not change your project code. It only installs user-scoped Codex config and command shims.
+This is a user-level bootstrap, not a project-level integration. It changes your Codex config and local command shims, but it does not touch your repo code.
+
+## TL;DR
+
+```bash
+brew install rtk
+git clone https://github.com/Akimiya-z/codex-rtk-bootstrap.git
+cd codex-rtk-bootstrap
+./install.sh
+```
+
+Restart the Codex app, then open a new chat and ask it to run `git status`. You should see `rtk git status`.
 
 ## What it installs
 
@@ -19,12 +30,21 @@ It does not change your project code. It only installs user-scoped Codex config 
 3. The shim forwards supported commands through `rtk`.
 4. `rtk` compresses the output before Codex sees it.
 
+```mermaid
+flowchart LR
+  A[Codex App] --> B["~/.codex/RTK.md"]
+  A --> C[Shell command]
+  C --> D["~/.local/bin/<cmd> shim"]
+  D --> E[rtk]
+  E --> F[Real command]
+```
+
 ## Requirements
 
 - macOS
 - Codex desktop app
 - `rtk` installed locally
-- `~/.local/bin` should be on `PATH` and come before the system command paths
+- `~/.local/bin` before the system command paths in `PATH`
 
 If you need to add it:
 
@@ -38,9 +58,27 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 ./install.sh
 ```
 
-If you want a different RTK binary path, set `RTK_BIN` first.
+Environment knobs:
 
-If you want to change which command names are shimmed, set `RTK_SHIM_COMMANDS`.
+- `RTK_BIN` sets a custom RTK binary path.
+- `RTK_SHIM_COMMANDS` overrides the default shimmed command list.
+
+## Verify
+
+Run these locally:
+
+```bash
+which git
+git status
+```
+
+In a new Codex App chat, ask:
+
+```text
+Please run git status and tell me the exact command you used.
+```
+
+If the setup is working, Codex should report `rtk git status`.
 
 ## Uninstall
 
@@ -54,8 +92,9 @@ If you want to change which command names are shimmed, set `RTK_SHIM_COMMANDS`.
 - New Codex app sessions will pick up the RTK instructions and the PATH shims.
 - The repo does not change your existing project files.
 - If you already have a different `model_instructions_file` in `~/.codex/config.toml`, merge it manually before running the installer.
+- RTK only helps for supported shell commands; it does not rewrite every tool call.
 
-## Who this is for
+## For
 
-- People using the Codex desktop app on macOS who want the RTK command pipeline without configuring it by hand.
+- People using the Codex desktop app on macOS who want RTK without hand-configuring every machine.
 - People who want a repeatable install script they can run on a fresh Mac.
